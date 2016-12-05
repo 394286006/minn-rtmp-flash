@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" title="发布视频" width="264" height="236" creationComplete="publish_creationCompleteHandler(event)">
+	<s:layout>
+		<s:VerticalLayout gap="0"/>
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+
+			/**
+			 * author:minn
+			 * QQ:394286006
+			 */ 
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			public var stream : NetStream;
+			public var connection : NetConnection;
+			public var connParam:Object=new Object();
+			public var camera : Camera;
+			public var _group:NetGroup;
+			public var gspec:GroupSpecifier;
+			protected function publish_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				connParam.isConnected=false;
+				connParam.group=-1;
+				connParam.clientId=-1;
+				connParam.uuid='minn';
+			}
+			protected function connect(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			
+
+				
+				connection = new NetConnection( );
+				connection.objectEncoding = ObjectEncoding.AMF0;
+				connection.addEventListener( IOErrorEvent.IO_ERROR , onIOError );
+				connection.addEventListener( NetStatusEvent.NET_STATUS , onStatus );
+				connection.addEventListener( AsyncErrorEvent.ASYNC_ERROR , onAsyncError );
+				connection.addEventListener( SecurityErrorEvent.SECURITY_ERROR , onSecurityError );
+				connection.connect(urlr.text ,connParam);
+				
+			}
+			
+			public function onStatus ( pEvent : NetStatusEvent ) : void
+			{
+				switch ( pEvent.info.code )
+				{
+					
+					case "NetConnection.Connect.Success" :
+						Alert.show("连接成功!");
+//						gspec = new GroupSpecifier("Group1");
+//						gspec.multicastEnabled = true;
+//						gspec.postingEnabled = true;
+//						gspec.serverChannelEnabled = true;
+//						gspec.objectReplicationEnabled = true;
+//						gspec.routingEnabled = true;
+//						
+//						_group = new NetGroup(connection, gspec.groupspecWithAuthorizations());
+//						_group.addEventListener(NetStatusEvent.NET_STATUS, onStatus);
+						
+						//activated = true;
+						//dispatchEvent( new CustomEvent( CustomEvent.ACTIVATE ) );
+						connet_id.enabled=false;
+						break;
+					
+					
+					case "NetConnection.Connect.Failed" : 
+						
+						//dispatchEvent( new CustomEvent( CustomEvent.DEACTIVATE ) );
+						
+						Alert.show("连接失败!");
+						connet_id.enabled=true;
+						break;
+					
+					case "NetConnection.Connect.Closed" :
+						connet_id.enabled=true;
+						Alert.show("关闭连接成功!");
+						//activated = false;
+						//dispatchEvent( new CustomEvent( CustomEvent.DEACTIVATE ) );
+						break;
+					case "NetStream.Play.Start":
+						Alert.show("connection 播放开始！");
+						
+						break;
+					case "NetStream.Publish.Start":
+						Alert.show("connection 发布开始!" );
+						stream.publish(live_name_id.text,"live"  );
+						//stream.publish(live_name_id.text , "live" );
+						break;
+					default: 
+						
+									Alert.show("未处理的信息:"+pEvent.info.code );
+				}
+				
+			}
+			
+			/**
+			 * Error events
+			 * @param pEvent error event
+			 **/
+			
+			public function onIOError ( pEvent : IOErrorEvent ) : void
+			{
+				Alert.show( "AMFConnection.onIOError : " + pEvent );
+			}
+			
+			public function onAsyncError ( pEvent : AsyncErrorEvent ) : void
+			{
+//				Alert.show( "AMFConnection.onAsyncError : " + pEvent );	
+			}
+			
+			public function onSecurityError ( pEvent : SecurityErrorEvent ) : void
+			{
+				Alert.show( "AMFConnection.onSecurityError : " + pEvent );	
+			}
+			
+			private function callJava():void
+			{
+				var param:Object=new Object();
+				param.name="minn";
+				param.age="29";
+				connection.call("flashCallJava",new Responder(javaCallFlash,callErrorInfo),param)
+			}
+			
+			private function javaCallFlash(result:Object):void
+			{
+				Alert.show(result.code);
+			}
+			private function callErrorInfo(error:Object):void
+			{
+				Alert.show("error.toString()");
+			}
+			//private var micor:Microphone=Microphone.getMicrophone();
+			private function createStream():void{
+				
+				//  micor.setSilenceLevel(0);
+				//                micor.codec=flash.media.SoundCodec.SPEEX;
+				//  micor.enableVAD=true;
+				
+				//	micor.addEventListener(StatusEvent.STATUS ,phoneStatus);
+				//micor.addEventListener(ActivityEvent.ACTIVITY,phoneActive);
+				//				stage.scaleMode=StageScaleMode.NO_SCALE;
+				camera = Camera.getCamera( );
+				//				
+				camera.setMode( 320 , 240 , 20 );
+				camera.setQuality( 0 , 100 );
+				stream = new NetStream( connection );
+				//				micor.enableVAD=false;
+				//	micor.setUseEchoSuppression(true);
+				//micor.setLoopBack(false);
+				//				micor.setSilenceLevel(10);
+				//				micor.setUseEchoSuppression(true);
+				//stream.attachAudio( micor );
+				
+				//				stream.multicastAvailabilitySendToAll=true;
+				//				stream.client=new CustomClient();
+				//				stream.dataReliable=true;
+				var response:Object=new Object();
+				//var m_h264Settings:H264VideoStreamSettings = new H264VideoStreamSettings();
+				//stream.videoStreamSettings=m_h264Settings;
+				//stream.client.onMetaData = onMetaData;
+				//stream.client.onCuePoint = onCuePoint;
+				//stream.client.onTextData = onTextDataHandler;
+				stream.addEventListener( NetStatusEvent.NET_STATUS , onStatus );
+				stream.addEventListener(NetDataEvent.MEDIA_TYPE_DATA,function(event:NetStatusEvent){
+					Alert.show('NetDataEvent:'+event.info);
+				});
+				stream.addEventListener(StatusEvent.STATUS,function(event:StatusEvent){
+					//Alert.show('StatusEvent:'+event.code);
+				});
+				stream.addEventListener(IOErrorEvent.IO_ERROR,function(event:IOErrorEvent){
+					Alert.show('IOErrorEvent:'+event.errorID);
+				});
+				stream.addEventListener(AsyncErrorEvent.ASYNC_ERROR,function(event:AsyncErrorEvent){
+					Alert.show('AsyncErrorEvent:'+event.errorID);
+				});
+				var video2:Video = new Video();
+				stream.bufferTime=0.1;
+				vd_id.addChild(video2);
+				video2.attachCamera(camera);
+				video2.height=150;
+				video2.width=200;
+				stream.client = {};
+				stream.attachCamera(camera);
+				//stream.publish("mp4:myvideo","live"  );
+			}
+			private function publish():void
+			{
+				stream.publish(live_name_id.text,"live"  );
+			
+			}
+			
+			private function phoneStatus(staut:StatusEvent):void{
+				Alert.show(staut.code);
+			}
+			private function phoneActive(staut:ActivityEvent):void{
+				if(staut.target is Microphone ){
+					
+//					stream.receiveAudio(staut.activating);
+				}
+			}
+			public function onMetaData(info:Object):void {
+				Alert.show("metadata: duration=" + info.duration + " width=" + info.width + " height=" + info.height + " framerate=" + info.framerate);
+			}
+			public function onCuePoint(info:Object):void {
+				Alert.show("cuepoint: time=" + info.time + " name=" + info.name + " type=" + info.type);
+			}
+			
+			public function getMeta (mdata:Object):void  
+			{  
+				Alert.show('asdsa');
+				
+			}  
+			public function onNormalPublishStatus ( eventX : NetStatusEvent ) : void
+			{
+				
+				Alert.show("onNormalPublishStatus:"+eventX);
+				switch (eventX.info.code) {
+					case "NetStream.Publish.Start":
+						Alert.show("发布开始!" );
+						break;
+					case "NetStream.Buffer.Empty":
+						//					Alert.show("NetStream.Buffer.Empty");
+						//					stream.
+						//					stream.
+						//					dispatchEvent(new UIEvent(UIEvent.BUFFER_START));
+						break;
+					case "NetStream.Buffer.Full":
+						
+						break;
+					default:
+						Alert.show("NetStream:"+eventX.info.code);
+				}
+				
+				
+			}
+		
+		
+			private function netStatusHandler(event:NetStatusEvent):void {
+				switch (event.info.code) {
+					case "NetConnection.Connect.Success":
+						//connectStream();
+						break;
+					case "NetStream.Play.StreamNotFound":
+						//trace("Stream not found: " + videoURL);
+						break;
+					
+				}
+			}
+			
+	
+			
+			protected function send_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var obj:Array=new Array();
+				obj.push('minn');
+//				stream.send("send", obj);
+				
+			}
+			private function sendBack(info:Object):void{
+				Alert.show('info');
+			}
+			public function onTextDataHandler(textData:Object):void {
+				
+				trace("--- textData properties ----");
+				var key:String;
+				
+				for (key in textData) {
+					Alert.show(key + ": " + textData[key]);
+				}
+			}
+			
+			public function sy_click():void{
+//				stream.receiveAudio(sy_id.selected);
+				//if(micor.silenceLevel==100)
+				//micor.setSilenceLevel(50);
+				//else{
+					//micor.setSilenceLevel(100);
+			//	}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VideoDisplay id="vd_id" width="100%" height="100%"/>
+	<mx:HBox>
+		<mx:TextInput x="145" y="41" width="190" id="urlr" text="rtmp://127.0.0.1:8990/rtmpServer"/>	<s:Button id="connet_id"
+																												  width="45"
+																												  label="连接"
+																												  click="connect(event)"/>
+	</mx:HBox>
+
+	<s:HGroup width="100%" height="23" >
+		<mx:Label height="19" text="名称:"/>
+		<s:TextInput id="live_name_id" width="69" text="livename"/>
+	
+	
+		<s:Button label="建立" click="createStream()"/>
+		<s:Button label="发布" click="publish()"/>
+		<s:CheckBox id="sy_id" label="音频" click="sy_click()"/>
+	</s:HGroup>
+</s:Panel>

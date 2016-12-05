@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:minn="p.minn.*"
+			   minWidth="955" minHeight="600" 
+			   >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+
+			/**
+			 * author:minn
+			 * QQ:394286006
+			 */ 
+			
+		]]>
+	</fx:Script> 
+	<mx:TabNavigator width="100%" height="100%">
+		<s:NavigatorContent width="100%" height="100%" label="数据测试">
+			<s:layout>
+				<s:HorizontalLayout/>
+			</s:layout>
+			<minn:DataPanel>
+			</minn:DataPanel>
+		</s:NavigatorContent>
+		<s:NavigatorContent  width="100%" height="100%" label="群聊测试">
+			<s:layout >
+				<s:HorizontalLayout />
+			</s:layout>
+			<minn:TalkPanel>
+			</minn:TalkPanel>
+			<minn:TalkPanel  width="100%" height="100%" name="">
+			</minn:TalkPanel>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="视频测试" >
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:HGroup width="100%" height="251">
+				<minn:VideoPublishPanel>
+				</minn:VideoPublishPanel>
+				<minn:VideoRecivePanel>
+				</minn:VideoRecivePanel>
+				<minn:VideoRecivePanel>
+				</minn:VideoRecivePanel>
+				<minn:VideoRecivePanel>
+				</minn:VideoRecivePanel>
+			</s:HGroup>
+			<s:HGroup width="100%" height="251">
+				<minn:VideoRecivePanel>
+				</minn:VideoRecivePanel>
+				<minn:VideoRecivePanel>
+				</minn:VideoRecivePanel>
+				<minn:VideoRecivePanel>
+				</minn:VideoRecivePanel>
+			</s:HGroup>
+		</s:NavigatorContent>
+		
+	</mx:TabNavigator>
+
+	
+	
+	
+</s:Application>

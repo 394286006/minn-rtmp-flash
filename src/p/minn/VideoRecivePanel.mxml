@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" title="播放视频" width="264" height="236" creationComplete="recive_creationCompleteHandler(event)">
+	<s:layout>
+		<s:VerticalLayout gap="0"/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * author:minn
+			 * QQ:394286006
+			 */ 
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			public var stream : NetStream;
+			public var connection : NetConnection;
+			public var connParam:Object=new Object();
+			public var _group:NetGroup;
+			public var gspec:GroupSpecifier;
+			protected function recive_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				connParam.isConnected=false;
+				connParam.group=-1;
+				connParam.clientId=-1;
+				connParam.uuid='minn';
+			}
+			
+			protected function connect(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				connection = new NetConnection( );
+				connection.objectEncoding = ObjectEncoding.AMF0;
+				connection.addEventListener( IOErrorEvent.IO_ERROR , onIOError );
+				connection.addEventListener( NetStatusEvent.NET_STATUS , onStatus );
+				
+				connection.addEventListener( AsyncErrorEvent.ASYNC_ERROR , onAsyncError );
+				connection.addEventListener( SecurityErrorEvent.SECURITY_ERROR , onSecurityError );
+				
+//				gspec = new GroupSpecifier("Group1");
+//				gspec.multicastEnabled = true;
+//				gspec.postingEnabled = true;
+//				gspec.serverChannelEnabled = true;
+//				gspec.objectReplicationEnabled = true;
+//				gspec.routingEnabled = true;
+//				
+//				_group = new NetGroup(connection, gspec.groupspecWithAuthorizations());
+//				_group.addEventListener(NetStatusEvent.NET_STATUS, onStatus);
+				
+				connection.connect(urlr.text ,connParam);
+//				connection.aaa="";
+			}
+			public function onStatus ( pEvent : NetStatusEvent ) : void
+			{
+				
+				switch ( pEvent.info.code )
+				{
+					
+					case "NetConnection.Connect.Success" :
+						Alert.show("连接成功!");
+						//activated = true;
+						//dispatchEvent( new CustomEvent( CustomEvent.ACTIVATE ) );
+						connet_id.enabled=false;
+						break;
+					
+					
+					case "NetConnection.Connect.Failed" : 
+						
+						//dispatchEvent( new CustomEvent( CustomEvent.DEACTIVATE ) );
+						connet_id.enabled=true;
+						Alert.show("NetConnection.Connect.Failed");
+						break;
+					
+					case "NetConnection.Connect.Closed" :
+						
+						Alert.show("连接关闭!");
+						connet_id.enabled=true;
+						//activated = false;
+						//dispatchEvent( new CustomEvent( CustomEvent.DEACTIVATE ) );
+						break;
+					case "NetStream.Play.Start":
+						Alert.show("实时视频开始播放!");
+						break;
+					case "NetStream.Publish.Start":
+						Alert.show("发布成功!" );
+						break;
+					default: 
+						Alert.show("未处理的信息:"+pEvent.info.code );
+				}
+				
+			}
+			
+			/**
+			 * Error events
+			 * @param pEvent error event
+			 **/
+			
+			public function onIOError ( pEvent : IOErrorEvent ) : void
+			{
+				Alert.show( "AMFConnection.onIOError : " + pEvent );
+			}
+			
+			public function onAsyncError ( pEvent : AsyncErrorEvent ) : void
+			{
+//				Alert.show( "AMFConnection.onAsyncError : " + pEvent );	
+			}
+			
+			public function onSecurityError ( pEvent : SecurityErrorEvent ) : void
+			{
+				Alert.show( "AMFConnection.onSecurityError : " + pEvent );	
+			}
+			
+	
+			
+			
+			private function callErrorInfo(error:Object):void
+			{
+				Alert.show("error.toString()");
+			}
+		
+		
+			private function receive():void
+			{
+//				stage.scaleMode=StageScaleMode.NO_SCALE;
+				stream = new NetStream(connection);
+				stream.addEventListener(NetStatusEvent.NET_STATUS, netStatus);
+				stream.addEventListener(StatusEvent.STATUS,netStatus);
+				stream.addEventListener(IOErrorEvent.IO_ERROR,netStatus);
+				stream.addEventListener(DRMStatusEvent.DRM_STATUS,netStatus);
+//				stream.client = this;
+//				stream.bufferTime=1;
+			
+				stream.client = {};
+				stream.client.onMetaData = onMetaData;
+				stream.client.onCuePoint = onCuePoint;
+				stream.client.onTextData = onTextDataHandler;
+				stream.client.send = sendBack;
+				var video:Video = new Video();
+
+				video.height=150;
+				video.width=200;
+				vd_id.addChild(video);
+				video.attachNetStream(stream);
+				stream.play(live_name_id.text);
+
+				
+				
+			}
+			function netStatus(event:NetStatusEvent):void {
+				Alert.show("netstatus:"+event.toString());
+				
+				
+				
+			}
+			
+			
+			public function onMetaData(info:Object):void {
+//				Alert.show("metadata: duration=" + info.duration + " width=" + info.width + " height=" + info.height + " framerate=" + info.framerate);
+				Alert.show("metadata: duration=" + info.name );
+			}
+			public function onCuePoint(info:Object):void {
+				Alert.show("cuepoint: time=" + info.time + " name=" + info.name + " type=" + info.type);
+				
+			}
+			private function sendBack(info:Object):void{
+				Alert.show('info');
+			}
+			
+			public function onTextDataHandler(textData:Object):void {
+				
+				trace("--- textData properties ----");
+				var key:String;
+				
+				for (key in textData) {
+					Alert.show(key + ": " + textData[key]);
+				}
+			}
+			
+			public function sy_click():void{
+				stream.receiveAudio(sy_id.selected);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VideoDisplay id="vd_id" width="100%" height="100%"/>
+	<mx:HBox>
+		<mx:TextInput x="145" y="41" width="100%" id="urlr" text="rtmp://127.0.0.1:8990/rtmpServer"/><s:Button id="connet_id"
+																											   width="51"
+																											   label="连接"
+																											   click="connect(event)"/>
+	</mx:HBox>
+	
+	<s:HGroup width="100%" height="23" >
+		<mx:Label text="名称:"/>
+		<s:TextInput id="live_name_id" width="66" text="livename"/>
+	
+		<s:Button label="订阅" click="receive()"/>
+		<s:CheckBox id="sy_id" label="音频" click="sy_click()"/>
+	</s:HGroup>
+	
+</s:Panel>

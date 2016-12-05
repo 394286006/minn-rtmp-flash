@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" layout="vertical" creationComplete="talk_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * author:minn
+			 * QQ:394286006
+			 */ 
+			import flash.display.StageScaleMode;
+			import flash.events.EventDispatcher;
+			import flash.events.NetStatusEvent;
+			import flash.media.Video;
+			import flash.net.ObjectEncoding;
+			import flash.net.Responder;
+			
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.OnDemandEventDispatcher;
+			
+			public var stream : NetStream;
+			public var stream1 : NetStream;
+			public var stream2 : NetStream;
+			public var stream3 : NetStream;
+			
+			public var connection : NetConnection;
+			public var connParam:Object=new Object();
+			public var send:Function;
+			protected function talk_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				connParam.isConnected=false;
+				connParam.group=-1;
+				connParam.clientId=-1;
+				connParam.uuid='minn';
+			}
+			private function contact():void
+			{
+				connParam.uuid=name_id.text;
+				connection = new NetConnection( );
+				connection.objectEncoding = ObjectEncoding.AMF0;
+				connection.client=this;
+				connection.client.send=say;
+				connection.addEventListener( IOErrorEvent.IO_ERROR , onIOError );
+				connection.addEventListener( NetStatusEvent.NET_STATUS , onStatus );
+				connection.addEventListener( AsyncErrorEvent.ASYNC_ERROR , onAsyncError );
+				connection.addEventListener( SecurityErrorEvent.SECURITY_ERROR , onSecurityError );
+				connection.connect(urlr.text ,connParam);
+				
+				
+			}
+			
+			public function say(rs:Object):void{
+				say_id.text="";
+				if(content_id.text!=""){
+					content_id.text+="\n";
+				}
+				content_id.text+=rs.time;
+					content_id.text+="\n";
+				content_id.text+=rs.name+":"+rs.say;
+			}
+			public function onStatus ( pEvent : NetStatusEvent ) : void
+			{
+				
+				//Alert.show("info:"+pEvent.info);
+				
+				switch ( pEvent.info.code )
+				{
+					    //NetConnection.Connect.Succces
+					case "NetConnection.Connect.Success" :
+						Alert.show(pEvent.info.description);
+						connParam.isConnected=true;
+						var group:String=pEvent.info.group;
+						var clientId:String=pEvent.info.clientId;
+						connParam.group= group;
+						connParam.clientId=clientId;
+						conn_id.enabled=false;
+						send_id.enabled=true;
+					    logout_id.enabled=true;
+						break;
+					
+					
+					case "NetConnection.Connect.Failed" : 
+						connParam.isConnected=false;
+						Alert.show("请求连接失败!");
+						conn_id.enabled=true;
+						send_id.enabled=false;
+						logout_id.enabled=false;
+						break;
+					
+					case "NetConnection.Connect.Closed" :
+						
+						Alert.show("退出!");
+						conn_id.enabled=true;
+						send_id.enabled=false;
+						logout_id.enabled=false;
+						break;
+					default: 
+						Alert.show("err:"+pEvent.info.code );
+				}
+				
+			}
+			
+			/**
+			 * Error events
+			 * @param pEvent error event
+			 **/
+			
+			public function onIOError ( pEvent : IOErrorEvent ) : void
+			{
+				Alert.show( "AMFConnection.onIOError : " + pEvent );
+			}
+			
+			public function onAsyncError ( pEvent : AsyncErrorEvent ) : void
+			{
+//				Alert.show( "AMFConnection.onAsyncError : " + pEvent );	
+			}
+			
+			public function onSecurityError ( pEvent : SecurityErrorEvent ) : void
+			{
+				Alert.show( "AMFConnection.onSecurityError : " + pEvent );	
+			}
+			
+		
+			private function callErrorInfo(error:Object):void
+			{
+				Alert.show("error.toString()");
+			}
+			
+			
+			
+		
+			private function netStatus(event:NetStatusEvent):void {
+				Alert.show(event.info["code"]);
+				
+			}
+			private function netStatusHandler(event:NetStatusEvent):void {
+				switch (event.info.code) {
+					case "NetConnection.Connect.Success":
+						break;
+					case "NetStream.Play.StreamNotFound":
+						break;
+				}
+			}
+			
+		
+			
+			private function loginout():void{
+				connection.close();
+			}
+			
+			private function sendFunction():void{
+				var val:Object=new Object();
+				var date:Date=new Date();
+				val.name=name_id.text;
+				val.time=date.getFullYear()+"年"+(date.getMonth()+1)+"月"+date.getDate()+"日 "+date.getHours()+"时"+date.getMinutes()+"分";
+				val.say=say_id.text;
+				
+				connection.call("send",new Responder(sendBack,callErrorInfo),val);
+				
+			}
+			
+			public function sendBack(result:Object):void
+			{
+				//Alert.show(result.code);
+				content_id.text=result.msg;
+			}
+			
+		]]>
+	</fx:Script>
+		<mx:HBox width="100%">
+			<mx:TextInput x="0" y="11" width="231" id="urlr" text="rtmp://localhost:8990/rtmpServer"/><mx:Label text="用户名："/><s:TextInput id="name_id" x="409" y="310" text="minn"/> 	<mx:Button id="conn_id" label="连接" click="contact()"/>
+<mx:Button id="logout_id" label="退出" enabled="false"  click="loginout()"/>
+		</mx:HBox>
+		
+		<s:TextArea id="content_id"  width="100%" height="100%"/>
+		<mx:HBox width="100%">
+			<s:Label x="338" y="311" text="说:"/><s:TextInput id="say_id" x="409" y="310" width="80%" text="你好"/>	<mx:Button id="send_id" label="发送" enabled="false"  click="sendFunction()"/>		</mx:HBox>
+		<mx:VRule height="50" alpha="0"/>
+	
+</mx:Panel>
